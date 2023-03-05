@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec: # especificamos algunas etiquetas para el deployment
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        env: # para setear variables de entorno
+        - name: MI_VARIABLE
+          value: "Javier"
+        - name: APELLIDOS
+          value: "Chiquito Avellán"
+        - name: DD_AGENT_HOST
+          valueFrom: # especifica de dónde se obtiene el valor para esta variable
+            fieldRef:
+              fieldPath: status.hostIP
+        resources: # declarar recursos de cómputo para el contenedor
+          requests:
+            memory: "64Mi" # 64 MB de memoria
+            cpu: "200m" # 200 millicores; 1000 millicores = 1 core de CPU
+          limits: # se establece los límites máximos de recursos de cómputo
+            memory: "128Mi"
+            cpu: "500m"
+        readinessProbe: # indica a kubernetes que este contenedor está listo para recibir tráfico.
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5 # espera 5 antes de comenzar a sondear si el contenedor está listo.
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        ports:
+        - containerPort: 80
+
